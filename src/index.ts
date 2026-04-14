@@ -6,6 +6,7 @@ import express, { type Request, type Response } from "express"
 import { gmail_v1, google } from 'googleapis'
 import { z } from "zod"
 import { PORT } from "./config.js"
+import { GmailTool, TOOLS } from "./tools.js"
 
 type Draft = gmail_v1.Schema$Draft
 type DraftCreateParams = gmail_v1.Params$Resource$Users$Drafts$Create
@@ -215,8 +216,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
 
   const server = new McpServer(serverInfo)
 
-  server.tool("create_draft",
-    "Create a draft email in Gmail. Note the mechanics of the raw parameter.",
+  server.tool(TOOLS[GmailTool.CreateDraft].name,
+    TOOLS[GmailTool.CreateDraft].description,
     {
       raw: z.string().optional().describe("The entire email message in base64url encoded RFC 2822 format, ignores params.to, cc, bcc, subject, body, includeBodyHtml if provided"),
       threadId: z.string().optional().describe("The thread ID to associate this draft with"),
@@ -251,8 +252,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("delete_draft",
-    "Delete a draft",
+  server.tool(TOOLS[GmailTool.DeleteDraft].name,
+    TOOLS[GmailTool.DeleteDraft].description,
     {
       id: z.string().describe("The ID of the draft to delete")
     },
@@ -264,8 +265,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_draft",
-    "Get a specific draft by ID",
+  server.tool(TOOLS[GmailTool.GetDraft].name,
+    TOOLS[GmailTool.GetDraft].description,
     {
       id: z.string().describe("The ID of the draft to retrieve"),
       includeBodyHtml: z.boolean().optional().describe("Whether to include the parsed HTML in the return for each body, excluded by default because they can be excessively large")
@@ -286,8 +287,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("list_drafts",
-    "List drafts in the user's mailbox",
+  server.tool(TOOLS[GmailTool.ListDrafts].name,
+    TOOLS[GmailTool.ListDrafts].description,
     {
       maxResults: z.number().optional().describe("Maximum number of drafts to return. Accepts values between 1-500"),
       q: z.string().optional().describe("Only return drafts matching the specified query. Supports the same query format as the Gmail search box"),
@@ -324,8 +325,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("send_draft",
-    "Send an existing draft",
+  server.tool(TOOLS[GmailTool.SendDraft].name,
+    TOOLS[GmailTool.SendDraft].description,
     {
       id: z.string().describe("The ID of the draft to send")
     },
@@ -389,8 +390,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
   //   }
   // )
 
-  server.tool("create_label",
-    "Create a new label",
+  server.tool(TOOLS[GmailTool.CreateLabel].name,
+    TOOLS[GmailTool.CreateLabel].description,
     {
       name: z.string().describe("The display name of the label"),
       messageListVisibility: z.enum(['show', 'hide']).optional().describe("The visibility of messages with this label in the message list"),
@@ -408,8 +409,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("delete_label",
-    "Delete a label",
+  server.tool(TOOLS[GmailTool.DeleteLabel].name,
+    TOOLS[GmailTool.DeleteLabel].description,
     {
       id: z.string().describe("The ID of the label to delete")
     },
@@ -421,8 +422,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_label",
-    "Get a specific label by ID",
+  server.tool(TOOLS[GmailTool.GetLabel].name,
+    TOOLS[GmailTool.GetLabel].description,
     {
       id: z.string().describe("The ID of the label to retrieve")
     },
@@ -434,8 +435,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("list_labels",
-    "List all labels in the user's mailbox",
+  server.tool(TOOLS[GmailTool.ListLabels].name,
+    TOOLS[GmailTool.ListLabels].description,
     {},
     async () => {
       return handleTool(gmail, async (gmail: gmail_v1.Gmail) => {
@@ -445,8 +446,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("patch_label",
-    "Patch an existing label (partial update)",
+  server.tool(TOOLS[GmailTool.PatchLabel].name,
+    TOOLS[GmailTool.PatchLabel].description,
     {
       id: z.string().describe("The ID of the label to patch"),
       name: z.string().optional().describe("The display name of the label"),
@@ -466,8 +467,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("update_label",
-    "Update an existing label",
+  server.tool(TOOLS[GmailTool.UpdateLabel].name,
+    TOOLS[GmailTool.UpdateLabel].description,
     {
       id: z.string().describe("The ID of the label to update"),
       name: z.string().optional().describe("The display name of the label"),
@@ -487,8 +488,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("batch_delete_messages",
-    "Delete multiple messages",
+  server.tool(TOOLS[GmailTool.BatchDeleteMessages].name,
+    TOOLS[GmailTool.BatchDeleteMessages].description,
     {
       ids: z.array(z.string()).describe("The IDs of the messages to delete")
     },
@@ -500,8 +501,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("batch_modify_messages",
-    "Modify the labels on multiple messages",
+  server.tool(TOOLS[GmailTool.BatchModifyMessages].name,
+    TOOLS[GmailTool.BatchModifyMessages].description,
     {
       ids: z.array(z.string()).describe("The IDs of the messages to modify"),
       addLabelIds: z.array(z.string()).optional().describe("A list of label IDs to add to the messages"),
@@ -515,8 +516,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("delete_message",
-    "Immediately and permanently delete a message",
+  server.tool(TOOLS[GmailTool.DeleteMessage].name,
+    TOOLS[GmailTool.DeleteMessage].description,
     {
       id: z.string().describe("The ID of the message to delete")
     },
@@ -528,8 +529,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_message",
-    "Get a specific message by ID with format options",
+  server.tool(TOOLS[GmailTool.GetMessage].name,
+    TOOLS[GmailTool.GetMessage].description,
     {
       id: z.string().describe("The ID of the message to retrieve"),
       includeBodyHtml: z.boolean().optional().describe("Whether to include the parsed HTML in the return for each body, excluded by default because they can be excessively large")
@@ -547,8 +548,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("list_messages",
-    "List messages in the user's mailbox with optional filtering",
+  server.tool(TOOLS[GmailTool.ListMessages].name,
+    TOOLS[GmailTool.ListMessages].description,
     {
       maxResults: z.number().optional().describe("Maximum number of messages to return. Accepts values between 1-500"),
       pageToken: z.string().optional().describe("Page token to retrieve a specific page of results"),
@@ -578,8 +579,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("modify_message",
-    "Modify the labels on a message",
+  server.tool(TOOLS[GmailTool.ModifyMessage].name,
+    TOOLS[GmailTool.ModifyMessage].description,
     {
       id: z.string().describe("The ID of the message to modify"),
       addLabelIds: z.array(z.string()).optional().describe("A list of label IDs to add to the message"),
@@ -593,8 +594,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("send_message",
-    "Send an email message to specified recipients. Note the mechanics of the raw parameter.",
+  server.tool(TOOLS[GmailTool.SendMessage].name,
+    TOOLS[GmailTool.SendMessage].description,
     {
       raw: z.string().optional().describe("The entire email message in base64url encoded RFC 2822 format, ignores params.to, cc, bcc, subject, body, includeBodyHtml if provided"),
       threadId: z.string().optional().describe("The thread ID to associate this message with"),
@@ -629,8 +630,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("trash_message",
-    "Move a message to the trash",
+  server.tool(TOOLS[GmailTool.TrashMessage].name,
+    TOOLS[GmailTool.TrashMessage].description,
     {
       id: z.string().describe("The ID of the message to move to trash")
     },
@@ -642,8 +643,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("untrash_message",
-    "Remove a message from the trash",
+  server.tool(TOOLS[GmailTool.UntrashMessage].name,
+    TOOLS[GmailTool.UntrashMessage].description,
     {
       id: z.string().describe("The ID of the message to remove from trash")
     },
@@ -655,8 +656,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_attachment",
-    "Get a message attachment",
+  server.tool(TOOLS[GmailTool.GetAttachment].name,
+    TOOLS[GmailTool.GetAttachment].description,
     {
       messageId: z.string().describe("ID of the message containing the attachment"),
       id: z.string().describe("The ID of the attachment"),
@@ -669,8 +670,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("delete_thread",
-    "Delete a thread",
+  server.tool(TOOLS[GmailTool.DeleteThread].name,
+    TOOLS[GmailTool.DeleteThread].description,
     {
       id: z.string().describe("The ID of the thread to delete")
     },
@@ -682,8 +683,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_thread",
-    "Get a specific thread by ID",
+  server.tool(TOOLS[GmailTool.GetThread].name,
+    TOOLS[GmailTool.GetThread].description,
     {
       id: z.string().describe("The ID of the thread to retrieve"),
       includeBodyHtml: z.boolean().optional().describe("Whether to include the parsed HTML in the return for each body, excluded by default because they can be excessively large")
@@ -706,8 +707,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("list_threads",
-    "List threads in the user's mailbox",
+  server.tool(TOOLS[GmailTool.ListThreads].name,
+    TOOLS[GmailTool.ListThreads].description,
     {
       maxResults: z.number().optional().describe("Maximum number of threads to return"),
       pageToken: z.string().optional().describe("Page token to retrieve a specific page of results"),
@@ -742,8 +743,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("modify_thread",
-    "Modify the labels applied to a thread",
+  server.tool(TOOLS[GmailTool.ModifyThread].name,
+    TOOLS[GmailTool.ModifyThread].description,
     {
       id: z.string().describe("The ID of the thread to modify"),
       addLabelIds: z.array(z.string()).optional().describe("A list of label IDs to add to the thread"),
@@ -758,8 +759,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("trash_thread",
-    "Move a thread to the trash",
+  server.tool(TOOLS[GmailTool.TrashThread].name,
+    TOOLS[GmailTool.TrashThread].description,
     {
       id: z.string().describe("The ID of the thread to move to trash")
     },
@@ -771,8 +772,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("untrash_thread",
-    "Remove a thread from the trash",
+  server.tool(TOOLS[GmailTool.UntrashThread].name,
+    TOOLS[GmailTool.UntrashThread].description,
     {
       id: z.string().describe("The ID of the thread to remove from trash")
     },
@@ -784,8 +785,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_auto_forwarding",
-    "Gets auto-forwarding settings",
+  server.tool(TOOLS[GmailTool.GetAutoForwarding].name,
+    TOOLS[GmailTool.GetAutoForwarding].description,
     {},
     async () => {
       return handleTool(gmail, async (gmail: gmail_v1.Gmail) => {
@@ -795,8 +796,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_imap",
-    "Gets IMAP settings",
+  server.tool(TOOLS[GmailTool.GetImap].name,
+    TOOLS[GmailTool.GetImap].description,
     {},
     async () => {
       return handleTool(gmail, async (gmail: gmail_v1.Gmail) => {
@@ -806,8 +807,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_language",
-    "Gets language settings",
+  server.tool(TOOLS[GmailTool.GetLanguage].name,
+    TOOLS[GmailTool.GetLanguage].description,
     {},
     async () => {
       return handleTool(gmail, async (gmail: gmail_v1.Gmail) => {
@@ -817,8 +818,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_pop",
-    "Gets POP settings",
+  server.tool(TOOLS[GmailTool.GetPop].name,
+    TOOLS[GmailTool.GetPop].description,
     {},
     async () => {
       return handleTool(gmail, async (gmail: gmail_v1.Gmail) => {
@@ -828,8 +829,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_vacation",
-    "Get vacation responder settings",
+  server.tool(TOOLS[GmailTool.GetVacation].name,
+    TOOLS[GmailTool.GetVacation].description,
     {},
     async () => {
       return handleTool(gmail, async (gmail: gmail_v1.Gmail) => {
@@ -839,8 +840,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("update_auto_forwarding",
-    "Updates automatic forwarding settings",
+  server.tool(TOOLS[GmailTool.UpdateAutoForwarding].name,
+    TOOLS[GmailTool.UpdateAutoForwarding].description,
     {
       enabled: z.boolean().describe("Whether all incoming mail is automatically forwarded to another address"),
       emailAddress: z.string().describe("Email address to which messages should be automatically forwarded"),
@@ -854,8 +855,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("update_imap",
-    "Updates IMAP settings",
+  server.tool(TOOLS[GmailTool.UpdateImap].name,
+    TOOLS[GmailTool.UpdateImap].description,
     {
       enabled: z.boolean().describe("Whether IMAP is enabled for the account"),
       expungeBehavior: z.enum(['archive', 'trash', 'deleteForever']).optional().describe("The action that will be executed on a message when it is marked as deleted and expunged from the last visible IMAP folder"),
@@ -869,8 +870,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("update_language",
-    "Updates language settings",
+  server.tool(TOOLS[GmailTool.UpdateLanguage].name,
+    TOOLS[GmailTool.UpdateLanguage].description,
     {
       displayLanguage: z.string().describe("The language to display Gmail in, formatted as an RFC 3066 Language Tag")
     },
@@ -882,8 +883,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("update_pop",
-    "Updates POP settings",
+  server.tool(TOOLS[GmailTool.UpdatePop].name,
+    TOOLS[GmailTool.UpdatePop].description,
     {
       accessWindow: z.enum(['disabled', 'allMail', 'fromNowOn']).describe("The range of messages which are accessible via POP"),
       disposition: z.enum(['archive', 'trash', 'leaveInInbox']).describe("The action that will be executed on a message after it has been fetched via POP")
@@ -896,8 +897,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("update_vacation",
-    "Update vacation responder settings",
+  server.tool(TOOLS[GmailTool.UpdateVacation].name,
+    TOOLS[GmailTool.UpdateVacation].description,
     {
       enableAutoReply: z.boolean().describe("Whether the vacation responder is enabled"),
       responseSubject: z.string().optional().describe("Optional subject line for the vacation responder auto-reply"),
@@ -915,8 +916,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("add_delegate",
-    "Adds a delegate to the specified account",
+  server.tool(TOOLS[GmailTool.AddDelegate].name,
+    TOOLS[GmailTool.AddDelegate].description,
     {
       delegateEmail: z.string().describe("Email address of delegate to add")
     },
@@ -928,8 +929,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("remove_delegate",
-    "Removes the specified delegate",
+  server.tool(TOOLS[GmailTool.RemoveDelegate].name,
+    TOOLS[GmailTool.RemoveDelegate].description,
     {
       delegateEmail: z.string().describe("Email address of delegate to remove")
     },
@@ -941,8 +942,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_delegate",
-    "Gets the specified delegate",
+  server.tool(TOOLS[GmailTool.GetDelegate].name,
+    TOOLS[GmailTool.GetDelegate].description,
     {
       delegateEmail: z.string().describe("The email address of the delegate to retrieve")
     },
@@ -954,8 +955,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("list_delegates",
-    "Lists the delegates for the specified account",
+  server.tool(TOOLS[GmailTool.ListDelegates].name,
+    TOOLS[GmailTool.ListDelegates].description,
     {},
     async () => {
       return handleTool(gmail, async (gmail: gmail_v1.Gmail) => {
@@ -965,8 +966,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("create_filter",
-    "Creates a filter",
+  server.tool(TOOLS[GmailTool.CreateFilter].name,
+    TOOLS[GmailTool.CreateFilter].description,
     {
       criteria: z.object({
         from: z.string().optional().describe("The sender's display name or email address"),
@@ -993,8 +994,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("delete_filter",
-    "Deletes a filter",
+  server.tool(TOOLS[GmailTool.DeleteFilter].name,
+    TOOLS[GmailTool.DeleteFilter].description,
     {
       id: z.string().describe("The ID of the filter to be deleted")
     },
@@ -1006,8 +1007,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_filter",
-    "Gets a filter",
+  server.tool(TOOLS[GmailTool.GetFilter].name,
+    TOOLS[GmailTool.GetFilter].description,
     {
       id: z.string().describe("The ID of the filter to be fetched")
     },
@@ -1019,8 +1020,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("list_filters",
-    "Lists the message filters of a Gmail user",
+  server.tool(TOOLS[GmailTool.ListFilters].name,
+    TOOLS[GmailTool.ListFilters].description,
     {},
     async () => {
       return handleTool(gmail, async (gmail: gmail_v1.Gmail) => {
@@ -1030,8 +1031,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("create_forwarding_address",
-    "Creates a forwarding address",
+  server.tool(TOOLS[GmailTool.CreateForwardingAddress].name,
+    TOOLS[GmailTool.CreateForwardingAddress].description,
     {
       forwardingEmail: z.string().describe("An email address to which messages can be forwarded")
     },
@@ -1043,8 +1044,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("delete_forwarding_address",
-    "Deletes the specified forwarding address",
+  server.tool(TOOLS[GmailTool.DeleteForwardingAddress].name,
+    TOOLS[GmailTool.DeleteForwardingAddress].description,
     {
       forwardingEmail: z.string().describe("The forwarding address to be deleted")
     },
@@ -1056,8 +1057,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_forwarding_address",
-    "Gets the specified forwarding address",
+  server.tool(TOOLS[GmailTool.GetForwardingAddress].name,
+    TOOLS[GmailTool.GetForwardingAddress].description,
     {
       forwardingEmail: z.string().describe("The forwarding address to be retrieved")
     },
@@ -1069,8 +1070,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("list_forwarding_addresses",
-    "Lists the forwarding addresses for the specified account",
+  server.tool(TOOLS[GmailTool.ListForwardingAddresses].name,
+    TOOLS[GmailTool.ListForwardingAddresses].description,
     {},
     async () => {
       return handleTool(gmail, async (gmail: gmail_v1.Gmail) => {
@@ -1080,8 +1081,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("create_send_as",
-    "Creates a custom send-as alias",
+  server.tool(TOOLS[GmailTool.CreateSendAs].name,
+    TOOLS[GmailTool.CreateSendAs].description,
     {
       sendAsEmail: z.string().describe("The email address that appears in the 'From:' header"),
       displayName: z.string().optional().describe("A name that appears in the 'From:' header"),
@@ -1098,8 +1099,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("delete_send_as",
-    "Deletes the specified send-as alias",
+  server.tool(TOOLS[GmailTool.DeleteSendAs].name,
+    TOOLS[GmailTool.DeleteSendAs].description,
     {
       sendAsEmail: z.string().describe("The send-as alias to be deleted")
     },
@@ -1111,8 +1112,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_send_as",
-    "Gets the specified send-as alias",
+  server.tool(TOOLS[GmailTool.GetSendAs].name,
+    TOOLS[GmailTool.GetSendAs].description,
     {
       sendAsEmail: z.string().describe("The send-as alias to be retrieved")
     },
@@ -1124,8 +1125,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("list_send_as",
-    "Lists the send-as aliases for the specified account",
+  server.tool(TOOLS[GmailTool.ListSendAs].name,
+    TOOLS[GmailTool.ListSendAs].description,
     {},
     async () => {
       return handleTool(gmail, async (gmail: gmail_v1.Gmail) => {
@@ -1135,8 +1136,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("patch_send_as",
-    "Patches the specified send-as alias",
+  server.tool(TOOLS[GmailTool.PatchSendAs].name,
+    TOOLS[GmailTool.PatchSendAs].description,
     {
       sendAsEmail: z.string().describe("The send-as alias to be updated"),
       displayName: z.string().optional().describe("A name that appears in the 'From:' header"),
@@ -1154,8 +1155,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("update_send_as",
-    "Updates a send-as alias",
+  server.tool(TOOLS[GmailTool.UpdateSendAs].name,
+    TOOLS[GmailTool.UpdateSendAs].description,
     {
       sendAsEmail: z.string().describe("The send-as alias to be updated"),
       displayName: z.string().optional().describe("A name that appears in the 'From:' header"),
@@ -1173,8 +1174,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("verify_send_as",
-    "Sends a verification email to the specified send-as alias",
+  server.tool(TOOLS[GmailTool.VerifySendAs].name,
+    TOOLS[GmailTool.VerifySendAs].description,
     {
       sendAsEmail: z.string().describe("The send-as alias to be verified")
     },
@@ -1186,8 +1187,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("delete_smime_info",
-    "Deletes the specified S/MIME config for the specified send-as alias",
+  server.tool(TOOLS[GmailTool.DeleteSmimeInfo].name,
+    TOOLS[GmailTool.DeleteSmimeInfo].description,
     {
       sendAsEmail: z.string().describe("The email address that appears in the 'From:' header"),
       id: z.string().describe("The immutable ID for the S/MIME config")
@@ -1200,8 +1201,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_smime_info",
-    "Gets the specified S/MIME config for the specified send-as alias",
+  server.tool(TOOLS[GmailTool.GetSmimeInfo].name,
+    TOOLS[GmailTool.GetSmimeInfo].description,
     {
       sendAsEmail: z.string().describe("The email address that appears in the 'From:' header"),
       id: z.string().describe("The immutable ID for the S/MIME config")
@@ -1214,8 +1215,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("insert_smime_info",
-    "Insert (upload) the given S/MIME config for the specified send-as alias",
+  server.tool(TOOLS[GmailTool.InsertSmimeInfo].name,
+    TOOLS[GmailTool.InsertSmimeInfo].description,
     {
       sendAsEmail: z.string().describe("The email address that appears in the 'From:' header"),
       encryptedKeyPassword: z.string().describe("Encrypted key password"),
@@ -1229,8 +1230,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("list_smime_info",
-    "Lists S/MIME configs for the specified send-as alias",
+  server.tool(TOOLS[GmailTool.ListSmimeInfo].name,
+    TOOLS[GmailTool.ListSmimeInfo].description,
     {
       sendAsEmail: z.string().describe("The email address that appears in the 'From:' header")
     },
@@ -1242,8 +1243,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("set_default_smime_info",
-    "Sets the default S/MIME config for the specified send-as alias",
+  server.tool(TOOLS[GmailTool.SetDefaultSmimeInfo].name,
+    TOOLS[GmailTool.SetDefaultSmimeInfo].description,
     {
       sendAsEmail: z.string().describe("The email address that appears in the 'From:' header"),
       id: z.string().describe("The immutable ID for the S/MIME config")
@@ -1256,8 +1257,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("get_profile",
-    "Get the current user's Gmail profile",
+  server.tool(TOOLS[GmailTool.GetProfile].name,
+    TOOLS[GmailTool.GetProfile].description,
     {},
     async () => {
       return handleTool(gmail, async (gmail: gmail_v1.Gmail) => {
@@ -1267,8 +1268,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("watch_mailbox",
-    "Watch for changes to the user's mailbox",
+  server.tool(TOOLS[GmailTool.WatchMailbox].name,
+    TOOLS[GmailTool.WatchMailbox].description,
     {
       topicName: z.string().describe("The name of the Cloud Pub/Sub topic to publish notifications to"),
       labelIds: z.array(z.string()).optional().describe("Label IDs to restrict notifications to"),
@@ -1282,8 +1283,8 @@ function createServer({ gmail }: { gmail: gmail_v1.Gmail }) {
     }
   )
 
-  server.tool("stop_mail_watch",
-    "Stop receiving push notifications for the given user mailbox",
+  server.tool(TOOLS[GmailTool.StopMailWatch].name,
+    TOOLS[GmailTool.StopMailWatch].description,
     {},
     async () => {
       return handleTool(gmail, async (gmail: gmail_v1.Gmail) => {
@@ -1339,7 +1340,9 @@ const main = async () => {
     }
   })
 
-  app.get("/mcp", (_req, res) => sendError(res, 405, -32000, "Method Not Allowed (stateless server)"))
+  app.get("/mcp", (_req, res) => {
+    res.json({ tools: Object.values(TOOLS) })
+  })
   app.delete("/mcp", (_req, res) => sendError(res, 405, -32000, "Method Not Allowed (stateless server)"))
 
   app.listen(PORT, () => {
