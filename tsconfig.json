@@ -23,8 +23,7 @@
     "src/**/*.ts"
   ],
   "exclude": [
-    "node_modules",
-    "test"
+    "node_modules"
   ],
   "ts-node": {
     "files": true,
