@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
-import { createStatefulServer } from "@smithery/sdk/server/stateful.js"
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js"
+import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js"
+import { randomUUID } from "node:crypto"
+import express, { type Request, type Response } from "express"
 import fs from "fs"
 import { gmail_v1, google } from 'googleapis'
 import { z } from "zod"
@@ -1336,14 +1338,66 @@ const main = async () => {
     process.exit(0)
   }
 
-  // Stdio Server
-  const stdioServer = createServer({})
-  const transport = new StdioServerTransport()
-  await stdioServer.connect(transport)
+  const transports: Record<string, StreamableHTTPServerTransport> = {}
 
-  // Streamable HTTP Server
-  const { app } = createStatefulServer(createServer)
-  app.listen(PORT)
+  const app = express()
+  app.use("/mcp", express.json())
+
+  app.post("/mcp", async (req: Request, res: Response) => {
+    const sessionId = req.headers["mcp-session-id"] as string | undefined
+    let transport: StreamableHTTPServerTransport | undefined
+
+    if (sessionId && transports[sessionId]) {
+      transport = transports[sessionId]
+    } else if (!sessionId && isInitializeRequest(req.body)) {
+      const newSessionId = randomUUID()
+      transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => newSessionId,
+        onsessioninitialized: (id) => { transports[id] = transport! }
+      })
+      transport.onclose = () => {
+        if (transport!.sessionId) delete transports[transport!.sessionId]
+      }
+
+      try {
+        const server = createServer({})
+        await server.connect(transport)
+      } catch (error) {
+        console.error("Error initializing server:", error)
+        res.status(500).json({
+          jsonrpc: "2.0",
+          error: { code: -32603, message: "Error initializing server." },
+          id: null
+        })
+        return
+      }
+    } else {
+      res.status(400).json({
+        jsonrpc: "2.0",
+        error: { code: -32000, message: "Bad Request: No valid session ID provided. Session may have expired." },
+        id: null
+      })
+      return
+    }
+
+    await transport.handleRequest(req, res, req.body)
+  })
+
+  const handleSessionRequest = async (req: Request, res: Response) => {
+    const sessionId = req.headers["mcp-session-id"] as string | undefined
+    if (!sessionId || !transports[sessionId]) {
+      res.status(400).send("Invalid or expired session ID")
+      return
+    }
+    await transports[sessionId].handleRequest(req, res)
+  }
+
+  app.get("/mcp", handleSessionRequest)
+  app.delete("/mcp", handleSessionRequest)
+
+  app.listen(PORT, () => {
+    console.error(`Gmail MCP server listening on port ${PORT}`)
+  })
 }
 
 main()
